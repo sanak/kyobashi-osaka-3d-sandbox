@@ -1,0 +1,21 @@
+{
+  "name": "kyobashi-osaka-3d-sandbox",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Kyobashi Osaka 3D Sandbox",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "pnpm --parallel --stream -r run dev",
+    "build": "pnpm --parallel --stream -r run build",
+    "preview": "pnpm --parallel --stream -r run preview"
+  },
+  "keywords": ["3D Tiles", "Point Cloud", "deck.gl", "React"],
+  "author": "Ko Nagase",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=7",
+    "npm": "please-use-pnpm",
+    "yarn": "please-use-pnpm"
+  }
+}

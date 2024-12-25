@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>京橋駅(大阪)付近の三次元点群データ表示サンプル (deck.gl+React)</title>
+    <meta name="description" content="大阪市京橋駅付近の三次元点群データを表示するサンプルです" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+      }
+      #app {
+        height: 100%;
+      }
+      .attribution {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: white;
+        opacity: 0.5;
+        font:
+          12px 'Helvetica Neue',
+          Helvetica,
+          Arial,
+          sans-serif;
+        line-height: 12px;
+        padding: 4px;
+        z-index: 9;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div class="attribution">
+      <a href="https://www.geospatial.jp/ckan/dataset/kyoubasiekisyuuhen_las" target="_blank"
+        >京橋駅周辺三次元点群データ（大阪市建設局）</a
+      >
+      |
+      <a href="https://www.geospatial.jp/ckan/dataset/plateau-27100-osaka-shi-2022" target="_blank"
+        >3D都市モデル（Project PLATEAU）大阪市（2022年度）（国土交通省）</a
+      >
+      | &copy; <a href="https://carto.com/about-carto/" target="_blank" rel="noopener">CARTO</a>,
+      &copy;
+      <a href="http://www.openstreetmap.org/about/" target="_blank">OpenStreetMap</a> contributors
+    </div>
+  </body>
+  <script type="module">
+    import {renderToDOM} from './app.tsx';
+    renderToDOM(document.getElementById('app'));
+  </script>
+</html>
