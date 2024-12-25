@@ -1,0 +1,4 @@
+org/*.las
+crs/*.las
+yx/*.las
+3dtiles/**/tmp

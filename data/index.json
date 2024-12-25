@@ -1,0 +1,44 @@
+{
+  "PointCloud": {
+    "name": "点群データ",
+    "path": "./pointcloud",
+    "examples": {
+      "京橋駅連絡通路": {
+        "name": "kyobashi-station-connecting-passage",
+        "path": "./pointcloud/3dtiles/D-07",
+        "tileset": "tileset.json",
+        "files": []
+      },
+      "京橋公園": {
+        "name": "kyobashi-park",
+        "path": "./pointcloud/3dtiles/D-03",
+        "tileset": "tileset.json",
+        "files": []
+      },
+      "東野田公園": {
+        "name": "higashinoda-park",
+        "path": "./pointcloud/3dtiles/B-01",
+        "tileset": "tileset.json",
+        "files": []
+      }
+    }
+  },
+  "PLATEAU": {
+    "name": "PLATEAUデータ",
+    "path": "./plateau",
+    "examples": {
+      "建築物": {
+        "name": "bldg",
+        "path": "./plateau/3dtiles/bldg",
+        "tileset": "tileset.json",
+        "files": []
+      },
+      "道路": {
+        "name": "tran",
+        "path": "./plateau/3dtiles/tran",
+        "tileset": "tileset.json",
+        "files": []
+      }
+    }
+  }
+}

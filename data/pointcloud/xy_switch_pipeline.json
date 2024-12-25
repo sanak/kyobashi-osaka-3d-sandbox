@@ -1,0 +1,19 @@
+[
+  {
+    "type": "readers.las",
+    "spatialreference": "EPSG:6674"
+  },
+  {
+    "type": "filters.reprojection",
+    "in_srs": "EPSG:6674",
+    "out_srs": "EPSG:6674",
+    "in_axis_ordering": "2, 1"
+  },
+  {
+    "type": "writers.las",
+    "forward": "header,scale,vlr",
+    "offset_x": "auto",
+    "offset_y": "auto",
+    "offset_z": "auto"
+  }
+]
