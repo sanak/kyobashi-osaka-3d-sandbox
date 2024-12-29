@@ -1,9 +1,9 @@
 import styled from 'styled-components';
-import React, {PureComponent} from 'react';
-import PropTypes from 'prop-types';
-import marked from 'marked';
-
+import React, {ReactNode} from 'react';
+import type {Tileset3D} from '@loaders.gl/tiles';
 import {MAP_STYLES} from '../constants';
+import type {Example, Index} from '../examples';
+import type {MapStyles} from '../constants';
 
 const Container = styled.div`
   display: flex;
@@ -57,39 +57,41 @@ const TilesetDropDown = styled.select`
   font-size: 14px;
 `;
 
-const InfoContainer = styled.div`
-  margin-top: 12px;
-  text-align: center;
-  border-style: groove;
-`;
-
-const Description = styled.div`
-  margin-top: 6px;
-  font-size: 12px;
-  color: #555;
-  line-height: 1.4em;
-`;
-
-const propTypes = {
-  category: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
-  data: PropTypes.object.isRequired,
-  tileset: PropTypes.object,
-  mapStyles: PropTypes.object,
-  selectedMapStyle: PropTypes.string,
-  onExampleChange: PropTypes.func,
-  onMapStyleChange: PropTypes.func,
-  children: PropTypes.node
+type ExampleChangeEvent = {
+  category: string;
+  name: string;
+  example: Example;
 };
 
-const defaultProps = {
-  droppedFile: null,
-  onChange: () => {}
+type MapStyleChangeEvent = {
+  selectedMapStyle: string;
 };
 
-export default class ControlPanel extends PureComponent {
-  _renderByCategories() {
-    const {category, name, onExampleChange, data} = this.props;
+type ControlPanelProps = {
+  category: string;
+  name: string;
+  data: Index;
+  tileset?: Tileset3D | null;
+  mapStyles?: MapStyles;
+  selectedMapStyle?: string;
+  onExampleChange: (event: ExampleChangeEvent) => void;
+  onMapStyleChange: (event: MapStyleChangeEvent) => void;
+  children?: ReactNode;
+};
+
+const ControlPanel: React.FC<ControlPanelProps> = ({
+  category,
+  name,
+  data,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tileset,
+  mapStyles = MAP_STYLES,
+  selectedMapStyle = Object.values(MAP_STYLES)[0],
+  onExampleChange,
+  onMapStyleChange,
+  children
+}: ControlPanelProps) => {
+  const renderByCategories = () => {
     const categories = Object.keys(data);
     const selectedValue = `${category}.${name}`;
 
@@ -102,11 +104,6 @@ export default class ControlPanel extends PureComponent {
             const selected = evt.target.value;
             const [newCategory, newName] = selected.split('.');
             const categoryExamples = data[newCategory].examples;
-            this.setState({
-              category: newCategory,
-              name: newName,
-              example: categoryExamples[newName]
-            });
             onExampleChange({
               category: newCategory,
               name: newName,
@@ -132,11 +129,9 @@ export default class ControlPanel extends PureComponent {
         </TilesetDropDown>
       </TilesetDropDownContainer>
     );
-  }
+  };
 
-  _renderMapStyles() {
-    const {onMapStyleChange, mapStyles = MAP_STYLES, selectedMapStyle} = this.props;
-
+  const renderMapStyles = () => {
     return (
       <DropDownContainer>
         <DropDownLabel>背景地図:</DropDownLabel>
@@ -157,45 +152,15 @@ export default class ControlPanel extends PureComponent {
         </DropDown>
       </DropDownContainer>
     );
-  }
+  };
 
-  _renderInfo() {
-    if (!this.props.tileset) {
-      return null;
-    }
+  return (
+    <Container>
+      {renderByCategories()}
+      {renderMapStyles()}
+      {children}
+    </Container>
+  );
+};
 
-    const {
-      description,
-      credits: {attributions}
-    } = this.props.tileset || {};
-    if (!attributions || attributions.length === 0 || !description) {
-      return null;
-    }
-
-    return (
-      <InfoContainer>
-        {Boolean(attributions && attributions.length) && <b>Tileset Credentials</b>}
-        {Boolean(attributions && attributions.length) &&
-          attributions.map((attribution) => (
-            // eslint-disable-next-line react/no-danger
-            <div key={attribution.html} dangerouslySetInnerHTML={{__html: attribution.html}} />
-          ))}
-        {description && <Description dangerouslySetInnerHTML={{__html: marked(description)}} />}
-      </InfoContainer>
-    );
-  }
-
-  render() {
-    return (
-      <Container>
-        {this._renderByCategories()}
-        {this._renderMapStyles()}
-        {this.props.children}
-        {this._renderInfo()}
-      </Container>
-    );
-  }
-}
-
-ControlPanel.propTypes = propTypes;
-ControlPanel.defaultProps = defaultProps;
+export default ControlPanel;
