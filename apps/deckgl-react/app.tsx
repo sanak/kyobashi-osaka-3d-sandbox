@@ -116,7 +116,6 @@ const App = () => {
       return;
     }
     return () => {
-      console.log('cleanup');
       // memWidgetRef.current?.remove();
       tilesetStatsWidgetRef.current?.remove();
       // memWidgetRef.current = null;
