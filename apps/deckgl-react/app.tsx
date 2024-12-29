@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) vis.gl contributors
 
-import React, {PureComponent} from 'react';
-import {createRoot} from 'react-dom/client';
+import {useState, useRef, useEffect, useCallback} from 'react';
 import {Map} from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import styled from 'styled-components';
@@ -17,9 +16,14 @@ import {StatsWidget} from '@probe.gl/stats-widget';
 // To manage dependencies and bundle size, the app must decide which supporting loaders to bring in
 import {Tiles3DLoader} from '@loaders.gl/3d-tiles';
 
+import type {MapViewState, ViewStateChangeParameters} from '@deck.gl/core';
+import type {Tileset3D} from '@loaders.gl/tiles';
+
 import ControlPanel from './components/control-panel';
 import {loadExampleIndex, INITIAL_EXAMPLE_CATEGORY, INITIAL_EXAMPLE_NAME} from './examples';
+import type {Example, Index} from './examples';
 import {INITIAL_MAP_STYLE} from './constants';
+import {Stats} from '@probe.gl/stats';
 
 const TRANSITION_DURAITON = 2000;
 const EXAMPLES_VIEWSTATE = {
@@ -27,10 +31,10 @@ const EXAMPLES_VIEWSTATE = {
   longitude: 135.533355
 };
 
-export const INITIAL_VIEW_STATE = {
+const INITIAL_VIEW_STATE: MapViewState = {
   ...EXAMPLES_VIEWSTATE,
   pitch: 45,
-  maxPitch: 60,
+  maxPitch: 85,
   bearing: 0,
   minZoom: 2,
   maxZoom: 30,
@@ -56,105 +60,118 @@ const StatsWidgetContainer = styled.div`
   }
 `;
 
-export default class App extends PureComponent {
-  constructor(props) {
-    super(props);
+const App = () => {
+  // CURRENT VIEW POINT / CAMERA POSITION
+  const [viewState, setViewState] = useState<MapViewState>(INITIAL_VIEW_STATE);
+  // current tileset
+  const [tileset, setTileset] = useState<Tileset3D | null>(null);
+  // MAP STATE
+  const [selectedMapStyle, setSelectedMapStyle] = useState<string>(INITIAL_MAP_STYLE);
+  // EXAMPLE STATE
+  const [examplesByCategory, setExamplesByCategory] = useState<Index | null>(null);
+  const [selectedExample, setSelectedExample] = useState<Example | null>(null);
+  const [category, setCategory] = useState<string>(INITIAL_EXAMPLE_CATEGORY);
+  const [name, setName] = useState<string>(INITIAL_EXAMPLE_NAME);
 
-    this.state = {
-      // CURRENT VIEW POINT / CAMERA POSITIO
-      viewState: INITIAL_VIEW_STATE,
+  const statsWidgetContainerRef = useRef<HTMLDivElement | null>(null);
+  // const memWidgetRef = useRef<StatsWidget | null>(null);
+  const tilesetStatsWidgetRef = useRef<StatsWidget | null>(null);
 
-      // current tileset
-      tileset: null,
-
-      // MAP STATE
-      selectedMapStyle: INITIAL_MAP_STYLE,
-
-      // EXAMPLE STATE
-      droppedFile: null,
-      examplesByCategory: null,
-      selectedExample: null,
-      category: INITIAL_EXAMPLE_CATEGORY,
-      name: INITIAL_EXAMPLE_NAME
-    };
-
-    this._deckRef = null;
-    this._onTilesetLoad = this._onTilesetLoad.bind(this);
-    this._onTilesetChange = this._onTilesetChange.bind(this);
-  }
-
-  componentDidMount() {
-    const container = this._statsWidgetContainer;
-    this._tilesetStatsWidget = new StatsWidget(null, {
-      container,
-      css: {'line-break': 'anywhere'}
+  useEffect(() => {
+    const container = statsWidgetContainerRef.current;
+    /*
+    // TODO: wait for luma v9 memory stats support
+    memWidgetRef.current = new StatsWidget(luma.stats.get('Memory Usage'), {
+      framesPerUpdate: 1,
+      formatters: {
+        'GPU Memory': 'memory',
+        'Buffer Memory': 'memory',
+        'Renderbuffer Memory': 'memory',
+        'Texture Memory': 'memory'
+      },
+      container: container ? container : undefined,
     });
+    */
+    if (container && !tilesetStatsWidgetRef.current) {
+      tilesetStatsWidgetRef.current = new StatsWidget(new Stats({id: 'tileset-stats'}), {
+        container: container ? container : undefined,
+        css: {'line-break': 'anywhere'}
+      });
+    }
 
-    this._loadExampleIndex();
+    // load the index file that lists example tilesets
+    const _loadExampleIndex = async () => {
+      const examplesByCategory: Index = await loadExampleIndex();
+      setExamplesByCategory(examplesByCategory);
+
+      // if not, select the default example tileset
+      const selectedExample =
+        examplesByCategory[INITIAL_EXAMPLE_CATEGORY].examples[INITIAL_EXAMPLE_NAME];
+      setSelectedExample(selectedExample);
+    };
+    _loadExampleIndex();
 
     // Check if a tileset is specified in the query params
-    if (this._selectTilesetFromQueryParams()) {
+    if (selectTilesetFromQueryParams()) {
       return;
     }
-  }
-
-  // load the index file that lists example tilesets
-  async _loadExampleIndex() {
-    const examplesByCategory = await loadExampleIndex();
-    this.setState({examplesByCategory});
-
-    // if not, select the default example tileset
-    const {category, name} = this.state;
-    const selectedExample = examplesByCategory[category].examples[name];
-    this.setState({selectedExample});
-  }
+    return () => {
+      console.log('cleanup');
+      // memWidgetRef.current?.remove();
+      tilesetStatsWidgetRef.current?.remove();
+      // memWidgetRef.current = null;
+      tilesetStatsWidgetRef.current = null;
+    };
+  }, []);
 
   // Check URL query params and select the "custom example" if appropriate
-  _selectTilesetFromQueryParams() {
+  const selectTilesetFromQueryParams = (): boolean => {
     const parsedUrl = new URL(window.location.href);
 
     const tilesetUrl = parsedUrl.searchParams.get('tileset');
     if (tilesetUrl) {
-      this.setState({
-        selectedExample: {tilesetUrl},
-        category: 'custom',
-        name: 'URL Tileset'
+      setSelectedExample({
+        name: 'URL Tileset',
+        tilesetUrl
       });
+      setCategory('custom');
+      setName('URL Tileset');
       return true;
     }
 
     return false;
-  }
+  };
 
   // Updates stats, called every frame
-  _updateStatWidgets() {
-    // this._memWidget.update();
-    this._tilesetStatsWidget.update();
-  }
+  const updateStatWidgets = useCallback(() => {
+    // memWidgetRef.current?.update();
+    tilesetStatsWidgetRef.current?.update();
+  }, []);
 
   // Called by ControlPanel when user selects a new example
-  _onSelectExample({example, category, name}) {
-    this.setState({selectedExample: example, category, name});
-  }
+  const onSelectExample = useCallback(
+    ({example, category, name}: {example: Example; category: string; name: string}) => {
+      setSelectedExample(example);
+      setCategory(category);
+      setName(name);
+    },
+    []
+  );
 
   // Called by ControlPanel when user selects a new map style
-  _onSelectMapStyle({selectedMapStyle}) {
-    this.setState({selectedMapStyle});
-  }
-
-  // Called by Tile3DLayer when a new tileset is loaded
-  _onTilesetLoad(tileset) {
-    this.setState({tileset});
-    this._tilesetStatsWidget.setStats(tileset.stats);
-    this._centerViewOnTileset(tileset);
-  }
+  const onSelectMapStyle = useCallback(({selectedMapStyle}: {selectedMapStyle: string}) => {
+    setSelectedMapStyle(selectedMapStyle);
+  }, []);
 
   // Recenter view to cover the new tileset, with a fly-to transition
-  _centerViewOnTileset(tileset) {
-    const {cartographicCenter, zoom} = tileset;
-    this.setState({
-      viewState: {
-        ...this.state.viewState,
+  const centerViewOnTileset = useCallback(
+    (tileset: Tileset3D) => {
+      const {cartographicCenter, zoom} = tileset;
+      if (!cartographicCenter || !zoom) {
+        return;
+      }
+      setViewState({
+        ...viewState,
 
         // Update deck.gl viewState, moving the camera to the new tileset
         longitude: cartographicCenter[0],
@@ -166,22 +183,35 @@ export default class App extends PureComponent {
         // Tells deck.gl to animate the camera move to the new tileset
         transitionDuration: TRANSITION_DURAITON,
         transitionInterpolator: new FlyToInterpolator()
-      }
-    });
-  }
+      });
+    },
+    [viewState]
+  );
+
+  // Called by Tile3DLayer when a new tileset is loaded
+  const onTilesetLoad = useCallback(
+    (tileset: Tileset3D) => {
+      setTileset(tileset);
+      tilesetStatsWidgetRef.current?.setStats(tileset.stats);
+      centerViewOnTileset(tileset);
+    },
+    [centerViewOnTileset]
+  );
 
   // Called by Tile3DLayer whenever an individual tile in the current tileset is load or unload
-  _onTilesetChange(tileHeader) {
-    this._updateStatWidgets();
-  }
+  const onTilesetChange = useCallback(
+    (/*tileHeader: Tile3D*/) => {
+      updateStatWidgets();
+    },
+    [updateStatWidgets]
+  );
 
   // Called by DeckGL when user interacts with the map
-  _onViewStateChange({viewState}) {
-    this.setState({viewState});
-  }
+  const onViewStateChange = useCallback((viewState: MapViewState) => {
+    setViewState(viewState);
+  }, []);
 
-  _renderControlPanel() {
-    const {examplesByCategory, category, name, viewState, tileset, selectedMapStyle} = this.state;
+  const renderControlPanel = () => {
     if (!examplesByCategory) {
       return null;
     }
@@ -192,8 +222,8 @@ export default class App extends PureComponent {
         category={category}
         name={name}
         tileset={tileset}
-        onMapStyleChange={this._onSelectMapStyle.bind(this)}
-        onExampleChange={this._onSelectExample.bind(this)}
+        onMapStyleChange={onSelectMapStyle}
+        onExampleChange={onSelectExample}
         selectedMapStyle={selectedMapStyle}
       >
         <div style={{textAlign: 'center'}}>
@@ -202,69 +232,45 @@ export default class App extends PureComponent {
         </div>
       </ControlPanel>
     );
-  }
+  };
 
-  _renderStats() {
-    // TODO - too verbose, get more default styling from stats widget?
-    return <StatsWidgetContainer ref={(_) => (this._statsWidgetContainer = _)} />;
-  }
+  const tile3DLayer: Tile3DLayer | null =
+    selectedExample && selectedExample.tilesetUrl
+      ? new Tile3DLayer({
+          id: 'tile-3d-layer',
+          data: selectedExample.tilesetUrl,
+          loader: Tiles3DLoader,
+          loadOptions: {
+            '3d-tiles': {
+              loadGLTF: true,
+              decodeQuantizedPositions: false
+            }
+          },
+          pickable: true,
+          pointSize: 2,
+          getPointColor: [115, 112, 202],
+          onTilesetLoad: onTilesetLoad,
+          onTileLoad: onTilesetChange,
+          onTileUnload: onTilesetChange,
+          onTileError: onTilesetChange
+        })
+      : null;
 
-  _renderTile3DLayer() {
-    const {selectedExample} = this.state;
-    if (!selectedExample) {
-      return null;
-    }
+  return (
+    <div style={{position: 'relative', height: '100%'}}>
+      <StatsWidgetContainer ref={statsWidgetContainerRef} />
+      {renderControlPanel()}
+      <DeckGL
+        layers={[tile3DLayer]}
+        viewState={viewState}
+        onViewStateChange={(v: ViewStateChangeParameters) => onViewStateChange(v.viewState)}
+        controller={{type: MapController, inertia: true}}
+        onAfterRender={updateStatWidgets}
+      >
+        <Map reuseMaps mapLib={maplibregl} mapStyle={selectedMapStyle} styleDiffing />
+      </DeckGL>
+    </div>
+  );
+};
 
-    const {maximumScreenSpaceError, tilesetUrl} = selectedExample;
-    const dataUrl = tilesetUrl;
-    const loadOptions = {
-      '3d-tiles': {
-        loadGLTF: true,
-        decodeQuantizedPositions: false
-      }
-    };
-    if (maximumScreenSpaceError) {
-      loadOptions.maximumScreenSpaceError = maximumScreenSpaceError;
-    }
-
-    return new Tile3DLayer({
-      id: 'tile-3d-layer',
-      data: dataUrl,
-      loader: Tiles3DLoader,
-      loadOptions,
-      pickable: true,
-      pointSize: 2,
-      getPointColor: [115, 112, 202],
-      onTilesetLoad: this._onTilesetLoad,
-      onTileLoad: this._onTilesetChange,
-      onTileUnload: this._onTilesetChange,
-      onTileError: this._onTilesetChange
-    });
-  }
-
-  render() {
-    const {viewState, selectedMapStyle} = this.state;
-    const tile3DLayer = this._renderTile3DLayer();
-
-    return (
-      <div style={{position: 'relative', height: '100%'}}>
-        {this._renderStats()}
-        {this._renderControlPanel()}
-        <DeckGL
-          layers={[tile3DLayer]}
-          viewState={viewState}
-          onViewStateChange={this._onViewStateChange.bind(this)}
-          controller={{type: MapController, maxPitch: 85, inertia: true}}
-          onAfterRender={() => this._updateStatWidgets()}
-        >
-          <Map reuseMaps mapLib={maplibregl} mapStyle={selectedMapStyle} preventStyleDiffing />
-        </DeckGL>
-      </div>
-    );
-  }
-}
-
-export function renderToDOM(container) {
-  const root = createRoot(container);
-  root.render(<App />);
-}
+export default App;
