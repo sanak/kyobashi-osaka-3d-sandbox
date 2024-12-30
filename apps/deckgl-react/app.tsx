@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) vis.gl contributors
 
-import {useState, useRef, useEffect, useCallback} from 'react';
+import {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {Map} from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import styled from 'styled-components';
@@ -20,10 +20,17 @@ import type {MapViewState, ViewStateChangeParameters} from '@deck.gl/core';
 import type {Tileset3D} from '@loaders.gl/tiles';
 
 import ControlPanel from './components/control-panel';
-import {loadExampleIndex, INITIAL_EXAMPLE_CATEGORY, INITIAL_EXAMPLE_NAME} from './examples';
+import {
+  loadExampleIndex,
+  INITIAL_EXAMPLE_CATEGORY,
+  INITIAL_EXAMPLE_NAME,
+  PLATEAU_BUILDING_GEOJSON
+} from './examples';
 import type {Example, Index} from './examples';
 import {INITIAL_MAP_STYLE} from './constants';
 import {Stats} from '@probe.gl/stats';
+import {GeoJsonLayer} from '@deck.gl/layers';
+import {Feature} from 'geojson';
 
 const TRANSITION_DURAITON = 2000;
 const EXAMPLES_VIEWSTATE = {
@@ -72,6 +79,8 @@ const App = () => {
   const [selectedExample, setSelectedExample] = useState<Example | null>(null);
   const [category, setCategory] = useState<string>(INITIAL_EXAMPLE_CATEGORY);
   const [name, setName] = useState<string>(INITIAL_EXAMPLE_NAME);
+  // GeoJSON Visibility
+  const [geoJsonVisibility, setGeoJsonVisibility] = useState<boolean>(true);
 
   const statsWidgetContainerRef = useRef<HTMLDivElement | null>(null);
   // const memWidgetRef = useRef<StatsWidget | null>(null);
@@ -162,6 +171,11 @@ const App = () => {
     setSelectedMapStyle(selectedMapStyle);
   }, []);
 
+  // Called by ControlPanel when user changes GeoJSON layer visibility
+  const onGeoJsonVisibility = useCallback(({geoJsonVisibility}: {geoJsonVisibility: boolean}) => {
+    setGeoJsonVisibility(geoJsonVisibility);
+  }, []);
+
   // Recenter view to cover the new tileset, with a fly-to transition
   const centerViewOnTileset = useCallback(
     (tileset: Tileset3D) => {
@@ -224,6 +238,8 @@ const App = () => {
         onMapStyleChange={onSelectMapStyle}
         onExampleChange={onSelectExample}
         selectedMapStyle={selectedMapStyle}
+        geojsonVisibility={geoJsonVisibility}
+        onGeoJsonVisibilityChange={onGeoJsonVisibility}
       >
         <div style={{textAlign: 'center'}}>
           long/lat: {viewState.longitude.toFixed(5)},{viewState.latitude.toFixed(5)}, zoom:{' '}
@@ -232,6 +248,28 @@ const App = () => {
       </ControlPanel>
     );
   };
+
+  const geoJsonLayer: GeoJsonLayer | null = useMemo(() => {
+    if (!geoJsonVisibility) {
+      return null;
+    }
+    return new GeoJsonLayer({
+      id: 'geojson-layer',
+      data: PLATEAU_BUILDING_GEOJSON,
+      stroked: true,
+      filled: true,
+      lineWidthMinPixels: 1,
+      getFillColor: [255, 255, 255, 10],
+      getLineColor: [200, 200, 200, 255],
+      // 3D Options
+      extruded: true,
+      wireframe: true,
+      getElevation: (f: Feature) => f.properties?.measuredHeight,
+      positionFormat: 'XY'
+      // positionFormat: 'XYZ',
+      // _full3d: true
+    });
+  }, [geoJsonVisibility]);
 
   const tile3DLayer: Tile3DLayer | null =
     selectedExample && selectedExample.tilesetUrl
@@ -260,7 +298,7 @@ const App = () => {
       <StatsWidgetContainer ref={statsWidgetContainerRef} />
       {renderControlPanel()}
       <DeckGL
-        layers={[tile3DLayer]}
+        layers={[tile3DLayer, geoJsonLayer]}
         viewState={viewState}
         onViewStateChange={(v: ViewStateChangeParameters) => onViewStateChange(v.viewState)}
         controller={{type: MapController, inertia: true}}

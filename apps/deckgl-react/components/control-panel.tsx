@@ -31,7 +31,7 @@ const DropDownContainer = styled.div`
 `;
 
 const DropDownLabel = styled.label`
-  width: 80px;
+  width: 60px;
   text-align: right;
 `;
 
@@ -47,7 +47,7 @@ const TilesetDropDownContainer = styled.div`
 `;
 
 const TilesetDropDownLabel = styled.label`
-  width: 80px;
+  width: 60px;
   text-align: right;
 `;
 
@@ -55,6 +55,22 @@ const TilesetDropDown = styled.select`
   margin-left: 6px;
   /* font-weight: 800; */
   font-size: 14px;
+`;
+
+const CheckBoxContainer = styled.div`
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const CheckBoxLabel = styled.label`
+  width: auto;
+  text-align: left;
+`;
+
+const CheckBox = styled.input.attrs({type: 'checkbox'})`
+  width: 60px;
 `;
 
 type ExampleChangeEvent = {
@@ -67,6 +83,10 @@ type MapStyleChangeEvent = {
   selectedMapStyle: string;
 };
 
+type GeoJsonVisibilityChangeEvent = {
+  geoJsonVisibility: boolean;
+};
+
 type ControlPanelProps = {
   category: string;
   name: string;
@@ -74,8 +94,10 @@ type ControlPanelProps = {
   tileset?: Tileset3D | null;
   mapStyles?: MapStyles;
   selectedMapStyle?: string;
+  geojsonVisibility: boolean;
   onExampleChange: (event: ExampleChangeEvent) => void;
   onMapStyleChange: (event: MapStyleChangeEvent) => void;
+  onGeoJsonVisibilityChange: (event: GeoJsonVisibilityChangeEvent) => void;
   children?: ReactNode;
 };
 
@@ -87,8 +109,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   tileset,
   mapStyles = MAP_STYLES,
   selectedMapStyle = Object.values(MAP_STYLES)[0],
+  geojsonVisibility,
   onExampleChange,
   onMapStyleChange,
+  onGeoJsonVisibilityChange,
   children
 }: ControlPanelProps) => {
   const renderByCategories = () => {
@@ -154,10 +178,26 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     );
   };
 
+  const renderGeoJsonVisibility = () => {
+    return (
+      <CheckBoxContainer>
+        <CheckBox
+          checked={geojsonVisibility}
+          onChange={(evt) => {
+            const checked = evt.target.checked;
+            onGeoJsonVisibilityChange({geoJsonVisibility: checked});
+          }}
+        />
+        <CheckBoxLabel>PLATEAU建築物GeoJSON</CheckBoxLabel>
+      </CheckBoxContainer>
+    );
+  };
+
   return (
     <Container>
       {renderByCategories()}
       {renderMapStyles()}
+      {renderGeoJsonVisibility()}
       {children}
     </Container>
   );
