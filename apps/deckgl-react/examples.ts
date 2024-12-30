@@ -42,3 +42,5 @@ function resolveUrls(exampleIndex: Index) {
     }
   }
 }
+
+export const PLATEAU_BUILDING_GEOJSON = `${DATA_URI}/plateau/geojson/bldg/Building.geojson`;
