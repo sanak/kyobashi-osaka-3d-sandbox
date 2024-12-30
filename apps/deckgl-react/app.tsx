@@ -304,7 +304,7 @@ const App = () => {
         controller={{type: MapController, inertia: true}}
         onAfterRender={updateStatWidgets}
       >
-        <Map reuseMaps mapLib={maplibregl} mapStyle={selectedMapStyle} styleDiffing />
+        <Map reuseMaps mapLib={maplibregl} mapStyle={selectedMapStyle} styleDiffing maxPitch={85} />
       </DeckGL>
     </div>
   );
