@@ -301,7 +301,7 @@ const App = () => {
         layers={[tile3DLayer, geoJsonLayer]}
         viewState={viewState}
         onViewStateChange={(v: ViewStateChangeParameters) => onViewStateChange(v.viewState)}
-        controller={{type: MapController, inertia: true}}
+        controller={{type: MapController, inertia: true, touchRotate: true}}
         onAfterRender={updateStatWidgets}
       >
         <Map reuseMaps mapLib={maplibregl} mapStyle={selectedMapStyle} styleDiffing maxPitch={85} />
