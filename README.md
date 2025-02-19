@@ -24,8 +24,8 @@ URL: https://sanak.github.io/kyobashi-osaka-3d-sandbox/
 動作確認はmacOS環境のみで行っています。 `/data` ディレクトリを `apps/deckgl-react/public` ディレクトリからシンボリックリンクで参照しているため、Windows環境では動作しないかもしれません。
 
 ### 開発ツール
-- Node.js >= v18
-- pnpm >= v7
+- Node.js >= v20
+- pnpm >= v9
 
 ### インストールと開発サーバ起動
 

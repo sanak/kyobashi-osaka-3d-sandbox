@@ -9,12 +9,17 @@
     "build": "pnpm --parallel --stream -r run build",
     "preview": "pnpm --parallel --stream -r run preview"
   },
-  "keywords": ["3D Tiles", "Point Cloud", "deck.gl", "React"],
+  "keywords": [
+    "3D Tiles",
+    "Point Cloud",
+    "deck.gl",
+    "React"
+  ],
   "author": "Ko Nagase",
   "license": "MIT",
   "engines": {
-    "node": ">=18",
-    "pnpm": ">=7",
+    "node": ">=20",
+    "pnpm": ">=9",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm"
   }
