@@ -1,0 +1,67 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: 280px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  padding: 12px 24px;
+  margin: 20px;
+  font-size: 13px;
+  line-height: 2;
+  outline: none;
+  z-index: 100;
+  color: #121212;
+}
+
+.dropDownContainer {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.dropDownLabel {
+  width: 60px;
+  text-align: right;
+}
+
+.dropDown {
+  margin-left: 6px;
+}
+
+.tilesetDropDownContainer {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.tilesetDropDownLabel {
+  width: 60px;
+  text-align: right;
+}
+
+.tilesetDropDown {
+  margin-left: 6px;
+  /* font-weight: 800; */
+  font-size: 14px;
+}
+
+.checkBoxContainer {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.checkBoxLabel {
+  width: auto;
+  text-align: left;
+}
+
+.checkBox {
+  width: 60px;
+}

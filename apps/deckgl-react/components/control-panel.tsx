@@ -1,77 +1,9 @@
-import styled from 'styled-components';
 import React, {ReactNode} from 'react';
 import type {Tileset3D} from '@loaders.gl/tiles';
 import {MAP_STYLES} from '../constants';
 import type {Example, Index} from '../examples';
 import type {MapStyles} from '../constants';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  top: 0;
-  right: 0;
-  max-width: 280px;
-  background: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  padding: 12px 24px;
-  margin: 20px;
-  font-size: 13px;
-  line-height: 2;
-  outline: none;
-  z-index: 100;
-  color: #121212;
-`;
-
-const DropDownContainer = styled.div`
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-`;
-
-const DropDownLabel = styled.label`
-  width: 60px;
-  text-align: right;
-`;
-
-const DropDown = styled.select`
-  margin-left: 6px;
-`;
-
-const TilesetDropDownContainer = styled.div`
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-`;
-
-const TilesetDropDownLabel = styled.label`
-  width: 60px;
-  text-align: right;
-`;
-
-const TilesetDropDown = styled.select`
-  margin-left: 6px;
-  /* font-weight: 800; */
-  font-size: 14px;
-`;
-
-const CheckBoxContainer = styled.div`
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-`;
-
-const CheckBoxLabel = styled.label`
-  width: auto;
-  text-align: left;
-`;
-
-const CheckBox = styled.input.attrs({type: 'checkbox'})`
-  width: 60px;
-`;
+import styles from './control-panel.module.css';
 
 type ExampleChangeEvent = {
   category: string;
@@ -120,9 +52,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     const selectedValue = `${category}.${name}`;
 
     return (
-      <TilesetDropDownContainer>
-        <TilesetDropDownLabel>3D Tiles:</TilesetDropDownLabel>
-        <TilesetDropDown
+      <div className={styles.tilesetDropDownContainer}>
+        <label className={styles.tilesetDropDownLabel}>3D Tiles:</label>
+        <select className={styles.tilesetDropDown}
           value={selectedValue}
           onChange={(evt) => {
             const selected = evt.target.value;
@@ -150,16 +82,16 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               </optgroup>
             );
           })}
-        </TilesetDropDown>
-      </TilesetDropDownContainer>
+        </select>
+      </div>
     );
   };
 
   const renderMapStyles = () => {
     return (
-      <DropDownContainer>
-        <DropDownLabel>背景地図:</DropDownLabel>
-        <DropDown
+      <div className={styles.dropDownContainer}>
+        <label className={styles.dropDownLabel}>背景地図:</label>
+        <select className={styles.dropDown}
           value={selectedMapStyle}
           onChange={(evt) => {
             const selected = evt.target.value;
@@ -173,33 +105,33 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               </option>
             );
           })}
-        </DropDown>
-      </DropDownContainer>
+        </select>
+      </div>
     );
   };
 
   const renderGeoJsonVisibility = () => {
     return (
-      <CheckBoxContainer>
-        <CheckBox
+      <div className={styles.checkBoxContainer}>
+        <input type={'checkbox'} className={styles.checkBox}
           checked={geojsonVisibility}
           onChange={(evt) => {
             const checked = evt.target.checked;
             onGeoJsonVisibilityChange({geoJsonVisibility: checked});
           }}
         />
-        <CheckBoxLabel>PLATEAU建築物GeoJSON</CheckBoxLabel>
-      </CheckBoxContainer>
+        <label className={styles.checkBoxLabel}>PLATEAU建築物GeoJSON</label>
+      </div>
     );
   };
 
   return (
-    <Container>
+    <div className={styles.container}>
       {renderByCategories()}
       {renderMapStyles()}
       {renderGeoJsonVisibility()}
       {children}
-    </Container>
+    </div>
   );
 };
 

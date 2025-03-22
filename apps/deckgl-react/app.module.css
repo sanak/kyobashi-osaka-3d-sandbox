@@ -1,0 +1,18 @@
+.statsWidgetContainer {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  max-width: 270px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    position: unset !important;
+    z-index: 1 !important;
+  }
+
+  @media (max-width: 610px) {
+    display: none;
+  }
+}
