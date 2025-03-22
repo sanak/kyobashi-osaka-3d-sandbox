@@ -5,7 +5,6 @@
 import {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {Map} from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
-import styled from 'styled-components';
 
 // import {luma} from '@luma.gl/core';
 import DeckGL from '@deck.gl/react';
@@ -19,6 +18,7 @@ import {Tiles3DLoader} from '@loaders.gl/3d-tiles';
 import type {MapViewState, ViewStateChangeParameters} from '@deck.gl/core';
 import type {Tileset3D} from '@loaders.gl/tiles';
 
+import styles from './app.module.css';
 import ControlPanel from './components/control-panel';
 import {
   loadExampleIndex,
@@ -47,25 +47,6 @@ const INITIAL_VIEW_STATE: MapViewState = {
   maxZoom: 30,
   zoom: 15
 };
-
-const StatsWidgetContainer = styled.div`
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  max-width: 270px;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-
-  > div {
-    position: unset !important;
-    z-index: 1 !important;
-  }
-
-  @media (max-width: 610px) {
-    display: none;
-  }
-`;
 
 const App = () => {
   // CURRENT VIEW POINT / CAMERA POSITION
@@ -295,7 +276,7 @@ const App = () => {
 
   return (
     <div style={{position: 'relative', height: '100%'}}>
-      <StatsWidgetContainer ref={statsWidgetContainerRef} />
+      <div className={styles.statsWidgetContainer} ref={statsWidgetContainerRef} />
       {renderControlPanel()}
       <DeckGL
         layers={[tile3DLayer, geoJsonLayer]}
